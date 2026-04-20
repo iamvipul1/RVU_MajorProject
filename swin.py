@@ -168,7 +168,7 @@ class SwinTransformerBlock(nn.Module):
     r"""Swin Transformer Block.
     Args:
         dim (int): Number of input channels.
-        input_resolution (tuple[int]): Input resulotion.
+        input_resolution (tuple[int]): Input resolution.
         num_heads (int): Number of attention heads.
         window_size (int): Window size.
         shift_size (int): Shift size for SW-MSA.
@@ -261,7 +261,7 @@ class SwinTransformerBlock(nn.Module):
         if self.shift_size > 0:
             shifted_x = torch.roll(x, shifts=(-self.shift_size, -self.shift_size), dims=(1, 2))
 
-            if H is self.attn_mask_dict.keys():
+            if H in self.attn_mask_dict.keys():
                 attn_mask = self.attn_mask_dict[H]
             else:
                 self.attn_mask_dict[H] = self.create_attn_mask(H, W).to(x.device)
@@ -377,7 +377,7 @@ class BasicLayer(nn.Module):
     """A basic Swin Transformer layer for one stage.
     Args:
         dim (int): Number of input channels.
-        input_resolution (tuple[int]): Input resulotion.
+        input_resolution (tuple[int]): Input resolution.
         depth (int): Number of blocks.
         num_heads (int): Number of attention heads.
         window_size (int): Window size.
@@ -507,7 +507,7 @@ class SwinTransformer(nn.Module):
         num_heads (tuple(int)): Number of attention heads in different layers.
         window_size (int): Window size.
         mlp_ratio (float): Ratio of mlp hidden dim to embedding dim.
-        qkv_bias (bool): If True, add a learnable bias to query, key, value. Default: Truee
+        qkv_bias (bool): If True, add a learnable bias to query, key, value. Default: True
         qk_scale (float): Override default qk scale of head_dim ** -0.5 if set.
         drop_rate (float): Dropout rate.
         attn_drop_rate (float): Attention dropout rate.
@@ -700,7 +700,7 @@ class SwinTransformer(nn.Module):
             for k, v in pretrained_dict.items():
                 need_init = (
                         k.split('.')[0] in pretrained_layers
-                        or pretrained_layers[0] is '*'
+                        or pretrained_layers[0] == '*'
                         or 'relative_position_index' not in k
                         or 'attn_mask' not in k
                 )
@@ -735,7 +735,7 @@ class SwinTransformer(nn.Module):
                         absolute_pos_embed_current = model_dict[k]
                         _, L1, C1 = absolute_pos_embed_pretrained.size()
                         _, L2, C2 = absolute_pos_embed_current.size()
-                        if C1 != C1:
+                        if C1 != C2:
                             logging.info(f"Error in loading {k}, passing")
                         else:
                             if L1 != L2:
@@ -759,7 +759,7 @@ class SwinTransformer(nn.Module):
             if (
                     name.split('.')[0] in frozen_layers
                     or '.'.join(name.split('.')[0:2]) in frozen_layers
-                    or (len(frozen_layers) > 0 and frozen_layers[0] is '*')
+                    or (len(frozen_layers) > 0 and frozen_layers[0] == '*')
             ):
                 for _name, param in module.named_parameters():
                     param.requires_grad = False
@@ -770,7 +770,7 @@ class SwinTransformer(nn.Module):
         for name, param in self.named_parameters():
             if (
                     name.split('.')[0] in frozen_layers
-                    or (len(frozen_layers) > 0 and frozen_layers[0] is '*')
+                    or (len(frozen_layers) > 0 and frozen_layers[0] == '*')
                     and param.requires_grad is True
             ):
                 param.requires_grad = False
