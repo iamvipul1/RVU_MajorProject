@@ -611,7 +611,7 @@ class SwinTransformer(nn.Module):
             x = x + self.absolute_pos_embed
         x = self.pos_drop(x)
 
-        if n==1:
+        if n == 1:
             return self.get_last_selfattention(x)
         else:
             return self.get_all_selfattention(x)
